@@ -112,27 +112,27 @@ void app_main(void)
 	printf("Hello World! (terminal)\n");
 	DELAY_MS(WAIT);
 
-	// TODO: Exercise 1 - Draw car in one location.
+	// Exercise 1 - Draw car in one location.
 	lcd_fillScreen(BACKGROUND_CLR);
 	lcd_drawString(0, 0, "Exercise 1", TITLE_CLR);
 	drawCar(OBJ_X, OBJ_Y);
 	DELAY_MS(2000);
 
-	// TODO: Exercise 2 - Draw moving car (Method 1), one pass across display.
+	// Exercise 2 - Draw moving car (Method 1), one pass across display.
 	// Clear the entire display and redraw all objects each iteration.
 	// Use a loop and increment x by OBJ_MOVE each iteration.
 	// Start x off screen (negative coordinate).
 
-	char x_buff[4];
+	char x_buff[4]; //string buffer
 	for (coord_t x = -CAR_W; x <= LCD_W; x += OBJ_MOVE) {
 		lcd_fillScreen(BACKGROUND_CLR);
-		lcd_drawString(0, 0, "Exercise 2", TITLE_CLR);
+		lcd_drawString(0, 0, "Exercise 2", TITLE_CLR); 
 		drawCar(x, OBJ_Y);
-		sprintf(x_buff, "%3ld", x);
+		sprintf(x_buff, "%3ld", x);  
 		lcd_drawString(0, (LCD_H-FONT_H), x_buff, TITLE_CLR);
 	}
 
-	// TODO: Exercise 3 - Draw moving car (Method 2), one pass across display.
+	// Exercise 3 - Draw moving car (Method 2), one pass across display.
 	// Move by erasing car at old position, then redrawing at new position.
 	// Objects that don't change or move are drawn once.
 
@@ -148,7 +148,7 @@ void app_main(void)
 		DELAY_MS(20);
 	}
 
-	// TODO: Exercise 4 - Draw moving car (Method 3), one pass across display.
+	// Exercise 4 - Draw moving car (Method 3), one pass across display.
 	// First, draw all objects into a cleared, off-screen frame buffer.
 	// Then, transfer the entire frame buffer to the screen.
 
@@ -163,7 +163,7 @@ void app_main(void)
 		lcd_writeFrame ();
 	}
 
-	// TODO: Exercise 5 - Draw an animated Pac-Man moving across the display.
+	// Exercise 5 - Draw an animated Pac-Man moving across the display.
 	// Use Pac-Man sprites instead of the car object.
 	// Cycle through each sprite when moving the Pac-Man character.
 	char x_buff4[4];
