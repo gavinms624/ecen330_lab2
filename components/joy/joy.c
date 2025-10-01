@@ -33,7 +33,7 @@ int32_t joy_init(){
     // Find Center of Joystick
     int_fast32_t read;
     char count = 1;
-    uint32_t sum;
+    uint32_t sum = 0;
     while(count <= 5){
         adc_oneshot_read(adc1_handle, ADC_CHANNEL_6, &read);
         sum += read;
