@@ -9,7 +9,7 @@
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_cali_scheme.h"
 
-#define MEAN_NUM
+#define MEAN_NUM 5
 
 uint32_t joy_center_6;
 uint32_t joy_center_7;
