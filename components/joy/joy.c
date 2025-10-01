@@ -9,7 +9,7 @@
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_cali_scheme.h"
 
-#define MEAN_NUM 5
+#define MEAN_NUM 10000
 
 uint32_t joy_center_6;
 uint32_t joy_center_7;
@@ -34,7 +34,7 @@ int32_t joy_init(){
 
     // Find Center of Joystick
     int_fast32_t read;
-    char count = 1;
+    uint32_t count = 1;
     uint32_t sum = 0;
     while(count <= MEAN_NUM){
         adc_oneshot_read(adc1_handle, ADC_CHANNEL_6, &read);
@@ -52,7 +52,7 @@ int32_t joy_init(){
         read = 0;
         count++;
     }
-    joy_center_7= (sum/count);
+    joy_center_7 = (sum/count);
     return 0;
 }
 
