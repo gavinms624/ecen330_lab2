@@ -9,6 +9,8 @@
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_cali_scheme.h"
 
+#define MEAN_NUM
+
 uint32_t joy_center_6;
 uint32_t joy_center_7;
 adc_oneshot_unit_handle_t adc1_handle;
@@ -34,19 +36,21 @@ int32_t joy_init(){
     int_fast32_t read;
     char count = 1;
     uint32_t sum = 0;
-    while(count <= 5){
+    while(count <= MEAN_NUM){
         adc_oneshot_read(adc1_handle, ADC_CHANNEL_6, &read);
         sum += read;
         read = 0;
+        count++;
     }
     joy_center_6 = (sum/count);
 
     count = 1;
     sum = 0;
-    while(count <= 5){
+    while(count <= MEAN_NUM){
         adc_oneshot_read(adc1_handle, ADC_CHANNEL_7, &read);
         sum += read;
         read = 0;
+        count++;
     }
     joy_center_7= (sum/count);
     return 0;
