@@ -2,6 +2,12 @@
 #include <math.h>
 
 #define DOUBLE 2
+#define BIAS 127
+#define ENUM_SIZE 5
+#define PI 3.1415f
+#define MAX_AMP 255
+#define MIN_AMP 0
+
 uint32_t sample_rate;
 
 int32_t tone_init(uint32_t sample_hz){
@@ -22,12 +28,25 @@ int32_t tone_deinit(void){
 }
 
 void tone_start(tone_t tone, uint32_t freq){
-    if(tone < 5 && freq >= LOWEST_FREQ){
+    if(tone < ENUM_SIZE && freq >= LOWEST_FREQ){
         uint32_t sample_num_period = (sample_rate/freq);
         switch(tone){
             case(SINE_T):
+                float sin_input_res = (2*pi/num_sample_points);
+                for(uint8_t i = 0; i < sample_num_period; i++){
+                    buffer[i] = ((MAX_AMP/2)*(float)(sinf((float)(sin_input_res*i) + (float)(pi/2))) + MAX_AMP/2);
+                }
                 break;
             case(SQUARE_T):
+                uint32_t half_period = sample_num_period/2;
+                for(uint8_t i = 0; i < sample_num_period; i++){
+                    if(i <= half_period){
+                        buffer[i] = MAX_AMP;
+                    }
+                    else{
+                        buffer[i] = MIN_AMP;
+                    }
+                }
                 break;
             case(TRIANGLE_T):
                 break;
