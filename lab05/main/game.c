@@ -13,9 +13,12 @@
 #define SECOND_SCALAR 1E3f
 #define X_TURN_MESSAGE "X's Turn!"
 #define O_TURN_MESSAGE "O's Turn!"
+#define C_MASK 0x0f
+#define NIBBLE 4
 
 int8_t r = 1;
 int8_t c = 1;
+uint8_t buffer = 0;
 enum game_state{init_st, new_game_st, wait_mark_st, mark_st, wait_restart_st} currentState;
 volatile uint64_t timer_ticks;
 mark_t mark = X_m;
@@ -33,14 +36,30 @@ void game_tick(void){
             currentState = new_game_st;
             break;
         case(new_game_st):
-            currentState = wait_mark_st;
-            graphics_drawMessage(X_TURN_MESSAGE, CONFIG_MESS_CLR, CONFIG_BACK_CLR);
+            if(com_read(&buffer, sizeof(buffer)) <= 0){
+                currentState = wait_mark_st;
+                graphics_drawMessage(X_TURN_MESSAGE, CONFIG_MESS_CLR, CONFIG_BACK_CLR);
+            }
             break;
         case(wait_mark_st):
-            if(!pin_get_level(HW_BTN_A) && board_set(r, c, mark)){ 
-                uint8_t loc = ((r << 4) | c); // put location in 1 byte buffer and send
+            uint8_t loc = 0;
+            if(!pin_get_level(HW_BTN_A)){ 
+                nav_get_loc(&r, &c);
+                loc = ((r << NIBBLE) | c); // put location in 1 byte buffer and send
                 com_write(&loc, sizeof(loc));
-                currentState = mark_st;
+
+                if(board_set(r, c, mark)){
+                    currentState = mark_st;
+                    break;
+                }
+            }
+            else if(com_read(&loc, sizeof(loc)) > 0){
+                r = (loc >> NIBBLE);
+                c = (loc & C_MASK);
+                if(board_set(r, c, mark)){
+                    currentState = mark_st;
+                    break;
+                }
             }
             break;
         case(mark_st):
@@ -92,9 +111,6 @@ void game_tick(void){
             nav_set_loc(r, c);
             break;
         case(wait_mark_st):
-            if(pin_get_level(!HW_BTN_A)){ 
-                nav_get_loc(&r, &c);
-            }
             break;
         case(mark_st):
             if(mark == X_m){
