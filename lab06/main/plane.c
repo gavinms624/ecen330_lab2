@@ -5,7 +5,7 @@
 // Initialize the plane state machine. Pass a pointer to the missile
 // that will be (re)launched by the plane. It will only have one missile.
 void plane_init(missile_t *plane_missile){
-    plane_missle->type = MISSILE_TYPE_PLANE;
+    plane_missile->type = MISSILE_TYPE_PLANE;
 
 }
 
@@ -30,5 +30,5 @@ void plane_get_pos(coord_t *x, coord_t *y){
 
 // Return whether the plane is flying.
 bool plane_is_flying(void){
-
+    return true;
 }
