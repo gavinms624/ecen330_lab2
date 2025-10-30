@@ -1,6 +1,6 @@
 #include "missile.h"
-#include <math.h>
-#include <stdlib.h>
+
+
 
 #define FIRING_LOC_1 (LCD_W/4)
 #define FIRING_LOC_2 (2*LCD_W/4)
@@ -94,6 +94,7 @@ void missile_launch_plane(missile_t *missile, coord_t x_orig, coord_t y_orig){
     finalize_launch(missile);
 }
 
+
 /******************** Missile Control & Tick Functions ********************/
 
 // Used to indicate that a moving missile should be detonated. This occurs
@@ -106,29 +107,69 @@ void missile_explode(missile_t *missile){
 void missile_tick(missile_t *missile){
 
     // Transition
-    switch(currentState){
+    switch(missile->currentState){
         case(idle_st):
-            missile->currentState = moving_st;
+            if(missile->launch){
+                missile->currentState = moving_st;
+            }
             break;
         case(moving_st):
+            if(missile->explode_me){
+                missile->currentState = exploding_grow_st;
+            }
             break;
         case(exploding_grow_st):
+            if(missile->radius >= CONFIG_EXPLOSION_MAX_RADIUS){
+                missile->currentState = exploding_shrink_st;
+            }
             break;
         case(exploding_shrink_st):
+            if(missile->radius <= 0){
+                missile->currentState = idle_st;
+            }
             break;
-        case(impacted_st):
+        case(impacted_st): 
+            missile->currentState = idle_st;
             break;
     }
 
     // Action
-    switch(currentState){
+    switch(missile->currentState){
         case(idle_st):
             break;
         case(moving_st):
+            float fraction = 0;
+            float length = 0;;
+            if(missile->type == MISSILE_TYPE_ENEMY){
+                length += CONFIG_ENEMY_MISSILE_DISTANCE_PER_TICK;
+                missile->length = length;
+                fraction = missile->length / missile->total_length;
+                missile->x_current = (float)missile->x_origin + fraction * (float)(missile->x_dest - missile->x_origin);
+                missile->y_current = (float)missile->y_origin + fraction * (float)(missile->y_dest - missile->y_origin);
+                lcd_drawLine(missile->x_origin, missile->y_origin, missile->x_current, missile->y_current, CONFIG_COLOR_ENEMY_MISSILE);
+            } else if(missile->type == MISSILE_TYPE_PLAYER){
+                length += CONFIG_PLAYER_MISSILE_DISTANCE_PER_TICK;
+                lcd_drawLine(missile->x_origin, missile->y_origin, missile->x_current, missile->y_current, CONFIG_COLOR_PLAYER_MISSILE);
+                missile->length = length;
+                fraction = missile->length / missile->total_length;
+                missile->x_current = (float)missile->x_origin + fraction * (float)(missile->x_dest - missile->x_origin);
+                missile->y_current = (float)missile->y_origin + fraction * (float)(missile->y_dest - missile->y_origin);
+            } else if(missile->type == MISSILE_TYPE_PLANE){
+                length += CONFIG_ENEMY_MISSILE_DISTANCE_PER_TICK;
+                missile->length = length;
+                fraction = missile->length / missile->total_length;
+                missile->x_current = (float)missile->x_origin + fraction * (float)(missile->x_dest - missile->x_origin);
+                missile->y_current = (float)missile->y_origin + fraction * (float)(missile->y_dest - missile->y_origin);
+                lcd_drawLine(missile->x_origin, missile->y_origin, missile->x_current, missile->y_current, CONFIG_COLOR_PLANE_MISSILE);
+            }
             break;
         case(exploding_grow_st):
+            missile->radius += CONFIG_EXPLOSION_RADIUS_CHANGE_PER_TICK;
+            lcd_fillCircle(missile->x_current, missile->y_current, missile->radius, RED);
             break;
         case(exploding_shrink_st):
+            missile->radius -= CONFIG_EXPLOSION_RADIUS_CHANGE_PER_TICK;
+            lcd_fillCircle(missile->x_current, missile->y_current, missile->radius, RED);
             break;
         case(impacted_st):
             break;

@@ -3,6 +3,10 @@
 
 #include "missile.h"
 
+#define PLANE_HEIGHT (LCD_H/4)
+#define LAUNCH_DIST (LCD_W/2)
+
+
 /******************** Plane Init Function ********************/
 
 // Initialize the plane state machine. Pass a pointer to the missile

@@ -3,7 +3,11 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <math.h>
+#include <stdlib.h>
 
+
+#include "config.h"
 #include "lcd.h" // coord_t
 
 // The same missile structure is used for all missiles in the game.
