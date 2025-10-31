@@ -8,7 +8,7 @@
 #define YMAX (LCD_H/4)
 #define XMAX (LCD_W-1)
 
-enum missileState{idle_st, moving_st, exploding_grow_st, exploding_shrink_st, impacted_st};
+
 
 
 
@@ -105,7 +105,7 @@ void missile_explode(missile_t *missile){
 
 // Tick the state machine for a single missile.
 void missile_tick(missile_t *missile){
-
+    float fraction = 0;
     // Transition
     switch(missile->currentState){
         case(idle_st):
@@ -114,8 +114,10 @@ void missile_tick(missile_t *missile){
             }
             break;
         case(moving_st):
-            if(missile->explode_me){
+            if(missile->explode_me == true){
                 missile->currentState = exploding_grow_st;
+            } else if(missile_is_impacted(missile)){
+                missile->currentState = impacted_st;
             }
             break;
         case(exploding_grow_st):
@@ -136,27 +138,28 @@ void missile_tick(missile_t *missile){
     // Action
     switch(missile->currentState){
         case(idle_st):
+            missile->launch = false;
+            missile->length = 0;
+            fraction = 0;
             break;
         case(moving_st):
-            float fraction = 0;
-            float length = 0;;
             if(missile->type == MISSILE_TYPE_ENEMY){
-                length += CONFIG_ENEMY_MISSILE_DISTANCE_PER_TICK;
-                missile->length = length;
+                missile->length += CONFIG_ENEMY_MISSILE_DISTANCE_PER_TICK;
                 fraction = missile->length / missile->total_length;
                 missile->x_current = (float)missile->x_origin + fraction * (float)(missile->x_dest - missile->x_origin);
                 missile->y_current = (float)missile->y_origin + fraction * (float)(missile->y_dest - missile->y_origin);
                 lcd_drawLine(missile->x_origin, missile->y_origin, missile->x_current, missile->y_current, CONFIG_COLOR_ENEMY_MISSILE);
             } else if(missile->type == MISSILE_TYPE_PLAYER){
-                length += CONFIG_PLAYER_MISSILE_DISTANCE_PER_TICK;
-                lcd_drawLine(missile->x_origin, missile->y_origin, missile->x_current, missile->y_current, CONFIG_COLOR_PLAYER_MISSILE);
-                missile->length = length;
+                missile->length += CONFIG_PLAYER_MISSILE_DISTANCE_PER_TICK;
                 fraction = missile->length / missile->total_length;
                 missile->x_current = (float)missile->x_origin + fraction * (float)(missile->x_dest - missile->x_origin);
                 missile->y_current = (float)missile->y_origin + fraction * (float)(missile->y_dest - missile->y_origin);
+                lcd_drawLine(missile->x_origin, missile->y_origin, missile->x_current, missile->y_current, CONFIG_COLOR_PLAYER_MISSILE);
+                if(missile->length >= missile->total_length){
+                    missile->explode_me = true;
+                }
             } else if(missile->type == MISSILE_TYPE_PLANE){
-                length += CONFIG_ENEMY_MISSILE_DISTANCE_PER_TICK;
-                missile->length = length;
+                missile->length += CONFIG_ENEMY_MISSILE_DISTANCE_PER_TICK;
                 fraction = missile->length / missile->total_length;
                 missile->x_current = (float)missile->x_origin + fraction * (float)(missile->x_dest - missile->x_origin);
                 missile->y_current = (float)missile->y_origin + fraction * (float)(missile->y_dest - missile->y_origin);
@@ -165,11 +168,11 @@ void missile_tick(missile_t *missile){
             break;
         case(exploding_grow_st):
             missile->radius += CONFIG_EXPLOSION_RADIUS_CHANGE_PER_TICK;
-            lcd_fillCircle(missile->x_current, missile->y_current, missile->radius, RED);
+            lcd_fillCircle(missile->x_current, missile->y_current, missile->radius, CONFIG_COLOR_PLAYER_MISSILE);
             break;
         case(exploding_shrink_st):
             missile->radius -= CONFIG_EXPLOSION_RADIUS_CHANGE_PER_TICK;
-            lcd_fillCircle(missile->x_current, missile->y_current, missile->radius, RED);
+            lcd_fillCircle(missile->x_current, missile->y_current, missile->radius, CONFIG_COLOR_PLAYER_MISSILE);
             break;
         case(impacted_st):
             break;
@@ -216,9 +219,15 @@ bool missile_is_idle(missile_t *missile){
 
 // Return whether the given missile is impacted.
 bool missile_is_impacted(missile_t *missile){
-    if(missile->currentState == impacted_st){
-        return true;
-    }
+    if(missile->type == MISSILE_TYPE_ENEMY || missile->type == MISSILE_TYPE_PLANE){
+        if(missile->y_current >= LCD_H || missile->x_current >= LCD_W || missile->x_current <= 0){
+            return true;
+        }
+    } else if(missile->type == MISSILE_TYPE_PLAYER){
+        if(missile->y_current <= 0 || missile->x_current >= LCD_W || missile->x_current <= 0){
+            return true;
+        }
+    } 
     return false;
 }
 

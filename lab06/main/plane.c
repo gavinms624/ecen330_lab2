@@ -1,6 +1,6 @@
 #include "plane.h"
 
-enum planeState {idle_st, flying_st}currentState;
+enum planeState {idle_p_st, flying_st}currentState;
 uint32_t wait_ticks = 0;
 coord_t plane_x = LCD_W;
 coord_t plane_y = PLANE_HEIGHT;
@@ -17,7 +17,7 @@ void plane_init(missile_t *plane_missile){
     plane_y = PLANE_HEIGHT;
     plane_missile->type = MISSILE_TYPE_PLANE;
     missile_init(plane_missile);
-    currentState = idle_st;
+    currentState = idle_p_st;
     plane_missile_g = plane_missile;
 }
 
@@ -25,17 +25,18 @@ void plane_init(missile_t *plane_missile){
 
 // Trigger the plane to explode.
 void plane_explode(void){
-    currentState = idle_st;
+    currentState = idle_p_st;
 }
 
 // State machine tick function.
 void plane_tick(void){
     // Transition
     switch(currentState){
-        case(idle_st):
+        case(idle_p_st):
             if(wait_ticks++ >= CONFIG_PLANE_IDLE_TIME_TICKS){
                 wait_ticks = 0;
                 currentState = flying_st;
+                plane_x = LCD_W;
             }
             break;
         case(flying_st):
@@ -46,10 +47,10 @@ void plane_tick(void){
     }
     // Action
     switch(currentState){
-        case(idle_st):
+        case(idle_p_st):
             break;
         case(flying_st):
-            if(plane_x <= LAUNCH_DIST){
+            if(plane_x == LAUNCH_DIST){
                 missile_launch_plane(plane_missile_g, plane_x, plane_y);
             }
             lcd_fillTriangle(plane_x, plane_y, plane_x, (plane_y - CONFIG_PLANE_HEIGHT), (plane_x - CONFIG_PLANE_WIDTH), (plane_y - CONFIG_PLANE_HEIGHT/2), CONFIG_COLOR_PLANE);

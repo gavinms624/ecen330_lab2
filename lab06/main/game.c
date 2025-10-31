@@ -51,17 +51,31 @@ void game_init(void)
 // detects collisions, and updates statistics.
 void game_tick(void)
 {
+	// for(uint32_t i = 0; i < CONFIG_MAX_ENEMY_MISSILES; i++){
+	// 	for(uint32_t j = 0; j < CONFIG_MAX_PLAYER_MISSILES; j++){
+	// 		if(missile_is_colliding(missiles+i, missiles[j].x_current, missiles[j].y_current)){
+	// 			missiles[j].explode_me = true;
+	// 			missiles[i].currentState = impacted_st;
+	// 		}
+	// 	}
+	// 	// if(missile_is_colliding(missiles+i, plane_x, plane_y)){
+	// 	// 	plane_explode();
+	// 	// }
+	// }
+
 	// Tick missiles in one batch
-	for (uint32_t i = 0; i < CONFIG_MAX_TOTAL_MISSILES; i++)
+	for (uint32_t i = 0; i < CONFIG_MAX_TOTAL_MISSILES; i++){
 		missile_tick(missiles+i);
+	}
 
 	// Tick plane
 	plane_tick();
 
 	// Relaunch idle enemy missiles
-	for (uint32_t i = 0; i < CONFIG_MAX_ENEMY_MISSILES; i++)
+	for (uint32_t i = 0; i < CONFIG_MAX_ENEMY_MISSILES; i++){
 		if (missile_is_idle(enemy_missiles+i))
 			missile_launch_enemy(enemy_missiles+i);
+	}
 
 	// M1: Relaunch idle player missiles, !!! remove after Milestone 1 !!!
 	for (uint32_t i = 0; i < CONFIG_MAX_PLAYER_MISSILES; i++)

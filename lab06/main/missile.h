@@ -15,6 +15,8 @@
 // There are no global variables maintained in the missile.c file.
 // Each missile function requires a pointer argument to a missile struct.
 
+enum missileState{idle_st, moving_st, exploding_grow_st, exploding_shrink_st, impacted_st};
+
 // This enum is used to identify the type of missile.
 typedef enum {
 	MISSILE_TYPE_PLAYER,
