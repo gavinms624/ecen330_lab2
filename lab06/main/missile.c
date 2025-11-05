@@ -168,11 +168,23 @@ void missile_tick(missile_t *missile){
             break;
         case(exploding_grow_st):
             missile->radius += CONFIG_EXPLOSION_RADIUS_CHANGE_PER_TICK;
-            lcd_fillCircle(missile->x_current, missile->y_current, missile->radius, CONFIG_COLOR_PLAYER_MISSILE);
+            if(missile->type == MISSILE_TYPE_PLAYER){
+                lcd_fillCircle(missile->x_current, missile->y_current, missile->radius, CONFIG_COLOR_PLAYER_MISSILE);
+            }else if(missile->type == MISSILE_TYPE_ENEMY){
+                lcd_fillCircle(missile->x_current, missile->y_current, missile->radius, CONFIG_COLOR_ENEMY_MISSILE);
+            }else if(missile->type == MISSILE_TYPE_PLANE){
+                lcd_fillCircle(missile->x_current, missile->y_current, missile->radius, CONFIG_COLOR_PLANE_MISSILE);
+            }
             break;
         case(exploding_shrink_st):
             missile->radius -= CONFIG_EXPLOSION_RADIUS_CHANGE_PER_TICK;
-            lcd_fillCircle(missile->x_current, missile->y_current, missile->radius, CONFIG_COLOR_PLAYER_MISSILE);
+            if(missile->type == MISSILE_TYPE_PLAYER){
+                lcd_fillCircle(missile->x_current, missile->y_current, missile->radius, CONFIG_COLOR_PLAYER_MISSILE);
+            }else if(missile->type == MISSILE_TYPE_ENEMY){
+                lcd_fillCircle(missile->x_current, missile->y_current, missile->radius, CONFIG_COLOR_ENEMY_MISSILE);
+            }else if(missile->type == MISSILE_TYPE_PLANE){
+                lcd_fillCircle(missile->x_current, missile->y_current, missile->radius, CONFIG_COLOR_PLANE_MISSILE);
+            }
             break;
         case(impacted_st):
             break;
@@ -217,14 +229,11 @@ bool missile_is_idle(missile_t *missile){
     return false;
 }
 
+
 // Return whether the given missile is impacted.
 bool missile_is_impacted(missile_t *missile){
     if(missile->type == MISSILE_TYPE_ENEMY || missile->type == MISSILE_TYPE_PLANE){
         if(missile->y_current >= LCD_H){
-            return true;
-        }
-    } else if(missile->type == MISSILE_TYPE_PLAYER){
-        if(missile->y_current <= 0 || missile->x_current >= LCD_W || missile->x_current <= 0){
             return true;
         }
     } 

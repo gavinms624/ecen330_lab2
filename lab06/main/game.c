@@ -17,6 +17,7 @@
 
 // M2: Define stats constants
 #define IMPACTED_HEIGHT 10
+#define VOL 0
 
 // All missiles
 missile_t missiles[CONFIG_MAX_TOTAL_MISSILES];
@@ -32,6 +33,8 @@ uint32_t shots;
 uint32_t impacted;
 coord_t x;
 coord_t y;
+coord_t p_x;
+coord_t p_y;
 char shots_buffer[20];
 char impacted_buffer[20];
 
@@ -51,7 +54,8 @@ void game_init(void)
 	impacted = 0;
 
 	// M2: Set sound volume
-	sound_set_volume(MAX_VOL);
+	sound_init(MISSILELAUNCH_SAMPLE_RATE);
+	sound_set_volume(VOL);
 	
 }
 
@@ -92,7 +96,7 @@ void game_tick(void)
 			if (missile_is_idle(player_missiles+i)){
 				missile_launch_player(player_missiles+i, x, y);
 				shots++;
-				sound_start(missileLaunch, (MISSILELAUNCH_BITS_PER_SAMPLE*MISSILELAUNCH_SAMPLES), true);
+				sound_start(missileLaunch, sizeof(missileLaunch), false);
 				break;
 			}
 		}
@@ -101,10 +105,6 @@ void game_tick(void)
 		pressed = false; // all released
 	}
 
-	missile_get_pos(missile_t *missile, coord_t *x, coord_t *y){
-    *x = missile->x_current;
-    *y = missile->y_current;
-}
 
 
 	// M2: Check for moving non-player missile collision with an explosion.
@@ -112,20 +112,21 @@ void game_tick(void)
 		// Check Enemy Missiles
 		for(uint32_t j = 0; j < CONFIG_MAX_ENEMY_MISSILES; j++){
 			missile_get_pos(enemy_missiles+j, &x, &y);
-			if(missile_is_colliding(player_missiles+i, x, y) || missile_is_colliding(player_missiles+i, plane_missiles[j].x_current, plane_missiles[j].y_current)){
+			if(missile_is_colliding(player_missiles+i, x, y)){
 				missile_explode(enemy_missiles+j);
 			}
 		}
 		// Check Plane Missiles
 		for(uint32_t j = 0; j < CONFIG_MAX_PLANE_MISSILES; j++){
-			missile_get_pos(plane_missiles+j, &x, &y);
+			missile_get_pos(plane_missile+j, &x, &y);
 			if(missile_is_colliding(player_missiles+i, x, y)){
-				missile_explode(enemy_missiles+j);
+				missile_explode(plane_missile+j);
 			}
 		}
 
 		// M2: Check for flying plane collision with an explosion.
-		if(plane_is_flying() && (missile_is_colliding(missiles+i, plane_x, plane_y) || missile_is_colliding(missiles+i, (plane_x - CONFIG_PLANE_WIDTH), plane_y))){
+		plane_get_pos(&p_x, &p_y);
+		if(plane_is_flying() && (missile_is_colliding(player_missiles+i, p_x, p_y) || missile_is_colliding(player_missiles+i, (p_x - CONFIG_PLANE_WIDTH), p_y))){
 			plane_explode();
 		}
 	}
@@ -133,19 +134,18 @@ void game_tick(void)
 
 	// M2: Count non-player impacted missiles
 	for(uint32_t i = 0; i < CONFIG_MAX_ENEMY_MISSILES; i++){
-		if(missile_is_impacted(enemy_missiles+i)){
+		if((enemy_missiles+i)->currentState == impacted_st){
 			impacted++;
 		}
 	}
-	for(uint32_t i = 0; i < CONFIG_MAX_PLANE_MISSILES; i++){
-		if(missile_is_impacted(plane_missiles+i)){
+	if(plane_missile->currentState == impacted_st){
 			impacted++;
-		}
 	}
+	
 
 	// M2: Draw stats
-	sprintf(shots_buffer, "Shots: %d", shots);
-	sprintf(impacted_buffer, "Impacted: %d", impacted);
+	sprintf(shots_buffer, "Shots: %ld", shots);
+	sprintf(impacted_buffer, "Impacted: %ld", impacted);
 	lcd_drawString(0, 0, shots_buffer, CONFIG_COLOR_STATUS);
 	lcd_drawString(0, IMPACTED_HEIGHT, impacted_buffer, CONFIG_COLOR_STATUS);
 }
