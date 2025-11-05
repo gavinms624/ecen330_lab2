@@ -220,7 +220,7 @@ bool missile_is_idle(missile_t *missile){
 // Return whether the given missile is impacted.
 bool missile_is_impacted(missile_t *missile){
     if(missile->type == MISSILE_TYPE_ENEMY || missile->type == MISSILE_TYPE_PLANE){
-        if(missile->y_current >= LCD_H || missile->x_current >= LCD_W || missile->x_current <= 0){
+        if(missile->y_current >= LCD_H){
             return true;
         }
     } else if(missile->type == MISSILE_TYPE_PLAYER){
