@@ -17,7 +17,7 @@
 
 // M2: Define stats constants
 #define IMPACTED_HEIGHT 10
-#define VOL 0
+#define VOL MAX_VOL
 
 // All missiles
 missile_t missiles[CONFIG_MAX_TOTAL_MISSILES];
@@ -108,25 +108,25 @@ void game_tick(void)
 
 
 	// M2: Check for moving non-player missile collision with an explosion.
-	for(uint32_t i = 0; i < CONFIG_MAX_PLAYER_MISSILES; i++){
+	for(uint32_t i = 0; i < CONFIG_MAX_TOTAL_MISSILES; i++){
 		// Check Enemy Missiles
 		for(uint32_t j = 0; j < CONFIG_MAX_ENEMY_MISSILES; j++){
 			missile_get_pos(enemy_missiles+j, &x, &y);
-			if(missile_is_colliding(player_missiles+i, x, y)){
+			if(missile_is_colliding(missiles+i, x, y)){
 				missile_explode(enemy_missiles+j);
 			}
 		}
 		// Check Plane Missiles
 		for(uint32_t j = 0; j < CONFIG_MAX_PLANE_MISSILES; j++){
 			missile_get_pos(plane_missile+j, &x, &y);
-			if(missile_is_colliding(player_missiles+i, x, y)){
+			if(missile_is_colliding(missiles+i, x, y)){
 				missile_explode(plane_missile+j);
 			}
 		}
 
 		// M2: Check for flying plane collision with an explosion.
 		plane_get_pos(&p_x, &p_y);
-		if(plane_is_flying() && (missile_is_colliding(player_missiles+i, p_x, p_y) || missile_is_colliding(player_missiles+i, (p_x - CONFIG_PLANE_WIDTH), p_y))){
+		if(plane_is_flying() && (missile_is_colliding(missiles+i, p_x, p_y) || missile_is_colliding(missiles+i, (p_x - CONFIG_PLANE_WIDTH), p_y))){
 			plane_explode();
 		}
 	}
