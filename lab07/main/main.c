@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
@@ -54,6 +55,7 @@ void cursor(coord_t x, coord_t y, color_t color)
 // Main application
 void app_main(void)
 {
+	setvbuf(stdout, NULL, _IONBF, 0); // REMOVE
 	// ISR flag and counts
 	interrupt_flag = false;
 	isr_triggered_count = 0;
@@ -127,5 +129,4 @@ void app_main(void)
 	}
 	printf("Handled %lu of %lu interrupts\n", isr_handled_count, isr_triggered_count);
 	printf("WCET us:%llu\n", tmax);
-	sound_deinit();
 }
