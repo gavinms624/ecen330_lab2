@@ -9,12 +9,18 @@
 #include "cursor.h"
 #include "pin.h"
 #include "config.h"
+#include "esp_log.h"
 
-#define ROW 30
+#define GRID_SIZE 30 // One dimensional size
+#define ROW GRID_SIZE
 #define COL ROW
-#define MOVE_THRESHOLD 50
-#define SNAKE_SIZE 50
+#define MOVE_THRESHOLD (LCD_W/4)
+#define SNAKE_SIZE (LCD_W / COL)
 #define MAX_LENGTH 250
+#define X_CENTER (LCD_W/2)
+#define Y_CENTER (LCD_H/2)
+#define SNAKE_PIXELS_PER_SEC 35
+#define SNAKE_DISTANCE_PER_TICK \ (SNAKE_PIXELS_PER_SEC * CONFIG_GAME_TIMER_PERIOD)
 
 
 typedef struct {
@@ -25,8 +31,13 @@ typedef struct {
 } Segment;
 
 
+
+// Draw Snake Segment at pos
+void draw_segment(uint32_t pos);
+// Clear Grid at pos
+void clear_pos(uint32_t pos);
 // Initialize Display Position of segment
-void segment_xy_init(uint32_t pos);
+void lcd_pos_update(uint32_t pos);
 // Initializes the game board. Place Snake Head at center
 void grid_init(uint32_t grid[COL][ROW]);
 
