@@ -5,6 +5,8 @@ uint32_t snake_length;
 uint32_t grid[COL][ROW];
 uint32_t speed = 2;
 uint32_t count = 0;
+int32_t dx = 0;
+int32_t dy = 0;
 enum gameState{init_st, right_st, left_st, up_st, down_st, grow_st, collided_st}currentState;
 Segment snake[MAX_LENGTH];
 static const char *TAG = "lab07";
@@ -41,6 +43,7 @@ bool is_collided(){
     return false;
 }
 
+
 // Initialize the game control logic.
 void game_init(void){
     ESP_LOGI(TAG, "Application starting, version");
@@ -56,17 +59,13 @@ void game_init(void){
 void game_tick(void){
     // Transitions
     switch(currentState){
+        joy_get_displacement(&dx, &dy);
         case(init_st):
-            cursor_get_pos(&x, &y);
-            if(x > (X_CENTER + MOVE_THRESHOLD)){
-                currentState = right_st;
-            } else if (x < (X_CENTER - MOVE_THRESHOLD)){
-                currentState = left_st;
-            } else if (y > (Y_CENTER + MOVE_THRESHOLD)){
-                currentState = up_st;
-            } else if (y < (Y_CENTER - MOVE_THRESHOLD)){
-                currentState = down_st;
+            // if its close to the center do nothing
+            if(dx * dx + dy * dy <= MOVE_THRESHOLD * MOVE_THRESHOLD){
+                break;
             }
+
             break;
         case(right_st):
             cursor_get_pos(&x, &y);
@@ -78,6 +77,7 @@ void game_tick(void){
             } else if (y < (Y_CENTER - MOVE_THRESHOLD)){
                 currentState = down_st;
             }
+            
             break;
         case(left_st):
             cursor_get_pos(&x, &y);

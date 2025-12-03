@@ -45,6 +45,8 @@ void cursor_set_threshold(float thr);
 // *y: pointer to y coordinate.
 void cursor_get_pos(coord_t *x, coord_t *y);
 
+void cursor_get_pos2(coord_t *x, coord_t *y);
+
 // Set the cursor position in screen coordinates.
 // Coordinate values range from 0 to lcd maximum width and height minus 1.
 // x: x coordinate.

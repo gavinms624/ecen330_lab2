@@ -7,11 +7,14 @@
 #define SEN_DEFAULT 1.25f // Screen widths per second
 #define THRESH_DEFAULT 0.75f // Raw ADC values
 #define CLIP(x,lo,hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))
+#define ZERO_THRESHOLD 10
 
 static uint32_t uperiod; // Update period in milliseconds.
 static float sfactor; // Joystick sensitivity factor.
 static uint32_t thresh; // Joystick displacement threshold.
 static float xpos, ypos; // Current cursor position as a float.
+int32_t dx = 0;
+int32_t dy = 0;
 
 
 // Initialize the cursor. Must be called before use.
@@ -81,6 +84,19 @@ void cursor_get_pos(coord_t *x, coord_t *y)
 {
 	*x = xpos+0.5f;
 	*y = ypos+0.5f;
+}
+
+void cursor_get_pos2(coord_t *x, coord_t *y)
+{
+	joy_get_displacement(&dx, &dy);
+	if((dx * dx + dy * dy <= ZERO_THRESHOLD * ZERO_THRESHOLD)){
+		*x = LCD_W/2;
+		*y = LCD_H/2;
+	} else {
+		*x = xpos+0.5f;
+		*y = ypos+0.5f;
+	}
+
 }
 
 // Set the cursor position in screen coordinates.

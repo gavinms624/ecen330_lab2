@@ -14,7 +14,7 @@
 #define GRID_SIZE 30 // One dimensional size
 #define ROW GRID_SIZE
 #define COL ROW
-#define MOVE_THRESHOLD (LCD_W/4)
+#define MOVE_THRESHOLD (LCD_W/8)
 #define SNAKE_SIZE (LCD_W / COL)
 #define MAX_LENGTH 250
 #define X_CENTER (LCD_W/2)

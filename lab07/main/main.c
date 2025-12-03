@@ -44,13 +44,15 @@ void update() {
 	isr_triggered_count++;
 }
 
-// Draw the cursor on the screen
-void cursor(coord_t x, coord_t y, color_t color)
-{
-	coord_t s2 = CURSOR_SZ >> 1; // size div 2
-	lcd_drawHLine(x-s2, y,    CURSOR_SZ, color);
-	lcd_drawVLine(x,    y-s2, CURSOR_SZ, color);
-}
+// // Draw the cursor on the screen
+// void cursor(coord_t x, coord_t y, color_t color)
+// {
+// 	coord_t s2 = CURSOR_SZ >> 1; // size div 2
+// 	lcd_drawHLine(x-s2, y,    CURSOR_SZ, color);
+// 	lcd_drawVLine(x,    y-s2, CURSOR_SZ, color);
+// }
+
+
 
 // Main application
 void app_main(void)
@@ -65,7 +67,8 @@ void app_main(void)
 	lcd_init();
 	lcd_frameEnable();
 	lcd_fillScreen(CONFIG_COLOR_BACKGROUND);
-	CHK_RET(cursor_init(PER_MS));
+	// CHK_RET(cursor_init(PER_MS));
+	CHK_RET(joy_init());
 	game_init();
 
 	// Configure I/O pins for buttons
@@ -101,7 +104,7 @@ void app_main(void)
 
 	// Main game loop
 	uint64_t t1, t2, tmax = 0; // For hardware timer values
-	coord_t x, y; // For cursor position
+	coord_t dx, dy; // For cursor position
 	while (pin_get_level(HW_BTN_MENU)) // while MENU button not pressed
 	{
 		while (!interrupt_flag) ;
@@ -113,8 +116,8 @@ void app_main(void)
 		lcd_fillScreen(CONFIG_COLOR_BACKGROUND);
 #endif // CONFIG_ERASE
 		game_tick();
-		cursor_tick();
-		cursor_get_pos(&x, &y);
+		// cursor_tick();
+		// cursor_get_pos2(&x, &y);
 #ifdef CONFIG_ERASE
 		static coord_t lx = -1, ly = -1;
 		if (x != lx || y != ly) {
@@ -122,7 +125,7 @@ void app_main(void)
 			lx = x; ly = y;
 		}
 #endif // CONFIG_ERASE
-		cursor(x, y, CONFIG_COLOR_CURSOR);
+		// cursor(x, y, CONFIG_COLOR_CURSOR);
 		lcd_writeFrame();
 		t2 = esp_timer_get_time() - t1;
 		if (t2 > tmax) tmax = t2;
