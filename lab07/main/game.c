@@ -43,6 +43,18 @@ bool is_collided(){
     return false;
 }
 
+void move_head(){
+    joy_get_displacement(&dx, &dy);
+    // if its close to the center do nothing
+    if(dx * dx + dy * dy <= MOVE_THRESHOLD * MOVE_THRESHOLD){
+        return;
+    }
+
+    if(dx * dx > dy * dy){
+        
+    }
+
+}
 
 // Initialize the game control logic.
 void game_init(void){
@@ -59,13 +71,8 @@ void game_init(void){
 void game_tick(void){
     // Transitions
     switch(currentState){
-        joy_get_displacement(&dx, &dy);
         case(init_st):
-            // if its close to the center do nothing
-            if(dx * dx + dy * dy <= MOVE_THRESHOLD * MOVE_THRESHOLD){
-                break;
-            }
-
+            
             break;
         case(right_st):
             cursor_get_pos(&x, &y);
