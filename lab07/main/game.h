@@ -6,10 +6,11 @@
 
 #include "hw.h"
 #include "lcd.h"
-#include "cursor.h"
+// #include "cursor.h"
 #include "pin.h"
 #include "config.h"
 #include "esp_log.h"
+#include "joy.h"
 
 #define GRID_SIZE 30 // One dimensional size
 #define ROW GRID_SIZE

@@ -8,6 +8,7 @@ uint32_t count = 0;
 int32_t dx = 0;
 int32_t dy = 0;
 enum gameState{init_st, right_st, left_st, up_st, down_st, grow_st, collided_st}currentState;
+enum snakeState{NONE, RIGHT, LEFT, UP, DOWN}snakedir;
 Segment snake[MAX_LENGTH];
 static const char *TAG = "lab07";
 
@@ -45,13 +46,24 @@ bool is_collided(){
 
 void move_head(){
     joy_get_displacement(&dx, &dy);
+    // ESP_LOGI(TAG, "dx=%ld, dy=%ld", dx, dy);
     // if its close to the center do nothing
-    if(dx * dx + dy * dy <= MOVE_THRESHOLD * MOVE_THRESHOLD){
+    if((dx * dx + dy * dy) <= (MOVE_THRESHOLD * MOVE_THRESHOLD)){
+        snakedir = NONE;
         return;
     }
-
     if(dx * dx > dy * dy){
-        
+        if(dx > 0){
+            snakedir = RIGHT;
+        } else{
+            snakedir = LEFT;
+        }
+    } else{
+        if(dy > 0){
+            snakedir = UP;
+        } else{
+            snakedir = DOWN;
+        }
     }
 
 }
@@ -72,10 +84,18 @@ void game_tick(void){
     // Transitions
     switch(currentState){
         case(init_st):
-            
+            move_head();
+            if(snakedir == RIGHT){
+                currentState = right_st;
+            } else if(snakedir == LEFT){
+                currentState = left_st;
+            } else if (snakedir == UP){
+                currentState = up_st;
+            } else if (snakedir == DOWN){
+                currentState = down_st;
+            }
             break;
         case(right_st):
-            cursor_get_pos(&x, &y);
             if(is_collided()){
                 currentState = collided_st;
             }
@@ -87,7 +107,6 @@ void game_tick(void){
             
             break;
         case(left_st):
-            cursor_get_pos(&x, &y);
             if(is_collided()){
                 currentState = collided_st;
             }
@@ -98,7 +117,6 @@ void game_tick(void){
             }
             break;
         case(up_st):
-            cursor_get_pos(&x, &y);
             if(is_collided()){
                 currentState = collided_st;
             }
@@ -109,7 +127,7 @@ void game_tick(void){
             }
             break;
         case(down_st):
-            cursor_get_pos(&x, &y);
+            // cursor_get_pos(&x, &y);
             if(is_collided()){
                 currentState = collided_st;
             }
