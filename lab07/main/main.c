@@ -114,6 +114,7 @@ void app_main(void)
 #ifndef CONFIG_ERASE
 		lcd_fillScreen(CONFIG_COLOR_BACKGROUND);
 #endif // CONFIG_ERASE
+		srand(time(NULL)); 
 		game_tick();
 		// cursor_tick();
 		// cursor_get_pos2(&x, &y);

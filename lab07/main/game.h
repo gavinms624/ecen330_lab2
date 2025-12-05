@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h> // rand
+#include <time.h>
 
 #include "hw.h"
 #include "lcd.h"
@@ -22,6 +23,8 @@
 #define Y_CENTER (LCD_H/2)
 #define SNAKE_PIXELS_PER_SEC 35
 #define SNAKE_DISTANCE_PER_TICK \ (SNAKE_PIXELS_PER_SEC * CONFIG_GAME_TIMER_PERIOD)
+#define GROW_SPEED 5
+#define COLLISION_SENS 2
 
 
 typedef struct {
@@ -31,8 +34,10 @@ typedef struct {
     uint32_t y;
 } Segment;
 
-
-
+// Update LCD position of apple
+void update_apple(void);
+// Update grid with item location
+void grid_update(void);
 // Draw Snake Segment at pos
 void draw_segment(uint32_t pos);
 // Clear Grid at pos

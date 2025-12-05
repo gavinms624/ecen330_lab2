@@ -10,8 +10,12 @@ int32_t dy = 0;
 enum gameState{init_st, right_st, left_st, up_st, down_st, grow_st, collided_st}currentState;
 enum snakeState{NONE, RIGHT, LEFT, UP, DOWN}snakedir;
 Segment snake[MAX_LENGTH];
+Segment apple;
 static const char *TAG = "lab07";
 
+
+
+// 1: Head 2: Snake Body 3: Apple
 void grid_init(uint32_t grid[COL][ROW]){
     for(uint32_t c = 0; c < COL; c++){
         for(uint32_t r = 0; r < ROW; r++){
@@ -19,7 +23,14 @@ void grid_init(uint32_t grid[COL][ROW]){
         }
     }
     grid[snake[0].c][snake[0].r] = 1;
-    //TODO: Add an apple to the grid
+    srand(time(NULL)); 
+}
+
+void grid_update(){
+    grid[snake[0].c][snake[0].r] = 1;
+    for(uint32_t i = 1; i < snake_length; i++){
+        grid[snake[i].c][snake[i].r] = 2;
+    }
 }
 
 //Update LCD position of head segment
@@ -27,10 +38,27 @@ void lcd_pos_update(uint32_t pos){
     snake[pos].x = snake[pos].c * (LCD_W / COL);
     snake[pos].y = snake[pos].r * (LCD_H / ROW);
 }
+
+// Update LCD position of apple
+void update_apple(){
+    apple.c = rand() % (COL);
+    apple.r = rand() % (ROW);
+    grid[apple.c][apple.r] = 3;
+    apple.x = apple.c * (LCD_W / COL);
+    apple.y = apple.r * (LCD_H / ROW);
+}
+
+
 // Draw Snake Segment at pos/index in snake
 void draw_segment(uint32_t pos){
     lcd_fillRect2(snake[pos].x, snake[pos].y, snake[pos].x + SNAKE_SIZE, snake[pos].y + SNAKE_SIZE, GREEN);
 }
+
+// Draw apple
+void draw_apple(){
+    lcd_fillRect2(apple.x, apple.y, apple.x + SNAKE_SIZE, apple.y + SNAKE_SIZE, RED);
+}
+
 // Clear Grid at pos
 void clear_pos(uint32_t pos){
     grid[snake[pos].c][snake[pos].r] = 0;
@@ -41,6 +69,11 @@ bool is_collided(){
     if((snake[0].x + SNAKE_SIZE + SNAKE_SIZE*3/4) >= LCD_W || snake[0].x <= 0 || (snake[0].y + SNAKE_SIZE + SNAKE_SIZE/2) >= LCD_H || snake[0].y <= 0){
         return true;
     }
+    // for(uint32_t i = 1; i < snake_length; i++){
+    //         if(snake[i].c == snake[0].c && snake[i].r == snake[0].r){
+    //             return true;
+    //         }
+    // } FIX!!!!!!
     return false;
 }
 
@@ -49,7 +82,9 @@ void move_head(){
     // ESP_LOGI(TAG, "dx=%ld, dy=%ld", dx, dy);
     // if its close to the center do nothing
     if((dx * dx + dy * dy) <= (MOVE_THRESHOLD * MOVE_THRESHOLD)){
-        snakedir = NONE;
+        if(currentState == init_st){
+            snakedir = NONE;
+        }
         return;
     }
     if(dx * dx > dy * dy){
@@ -69,7 +104,8 @@ void move_head(){
 }
 
 bool apple_eaten(){
-    if(!pin_get_level(HW_BTN_A)){
+    if(!pin_get_level(HW_BTN_A) || ((snake[0].c - apple.c) * (snake[0].c - apple.c) <= COLLISION_SENS * COLLISION_SENS && (snake[0].r - apple.r) * (snake[0].r - apple.r) <= COLLISION_SENS * COLLISION_SENS )){
+        update_apple();
         return true;
     }
     return false;
@@ -82,6 +118,7 @@ void game_init(void){
     currentState = init_st;
     snake[0].r = ROW/2;
     snake[0].c = COL/2;
+    update_apple();
     lcd_pos_update(0);
     grid_init(grid);
 }
@@ -172,8 +209,8 @@ void game_tick(void){
             }
             break;
         case(collided_st):
-            ESP_LOGI(TAG, "COLLIDED");
             if(!pin_get_level(HW_BTN_START)){
+                update_apple();
                 currentState = init_st;
             }
             break;
@@ -186,77 +223,112 @@ void game_tick(void){
             snake[0].r = ROW/2;
             snake[0].c = COL/2;
             lcd_pos_update(0);
+            draw_apple();
             break;
         case(right_st):
-            // Update Head
+            // Update Body
             if(count++ >= speed){
-                snake[0].c++;
-                count = 0;
+                // Draw body, not tail end
+                for(uint32_t i = (snake_length-1); i > 0; i--){
+                    snake[i].c = snake[i-1].c;
+                    snake[i].r = snake[i-1].r;
+                    lcd_pos_update(i);
+                }
+
+                // Update Head
                 clear_pos(0);
+                snake[0].c++;
                 lcd_pos_update(0);
+                grid_update();
+                count = 0;
             }
-            draw_segment(0);
-            if(snake_length <= 1){
-                break;
-            }
-            // Draw body, not tail end
-            for(uint32_t i = 1; i < (snake_length-1); i++){
-                grid[snake[i-1].c][snake[i-1].r] = grid[snake[i].c][snake[i].r];
-                lcd_pos_update(i);
+            for(uint32_t i = 0; i < snake_length; i++){
                 draw_segment(i);
             }
-            // Take care of tail
-            clear_pos(snake_length-1);
-            snake[snake_length-1].c;
-            lcd_pos_update(snake_length-1);
-
-            // Draw
-            draw_segment(snake_length-1);
+            draw_apple();
             break;
         case(left_st):
-            // Update Head
+            // Update Body
             if(count++ >= speed){
-                snake[0].c--;
+                // Draw body, not tail end
+                for(uint32_t i = (snake_length-1); i > 0; i--){
+                    snake[i].c = snake[i-1].c;
+                    snake[i].r = snake[i-1].r;
+                    lcd_pos_update(i);
+                }
+
+                // Update Head
                 clear_pos(0);
+                snake[0].c--;
                 lcd_pos_update(0);
+                grid_update();
                 count = 0;
             }
-            draw_segment(0);
-            if(snake_length <= 1){
-                break;
+            for(uint32_t i = 0; i < snake_length; i++){
+                draw_segment(i);
             }
+            draw_apple();
             break;
         case(up_st):
-            // Update Head
+
+            // Update Body
             if(count++ >= speed){
-                snake[0].r++;
+                // Draw body, not tail end
+                for(uint32_t i = (snake_length-1); i > 0; i--){
+                    snake[i].c = snake[i-1].c;
+                    snake[i].r = snake[i-1].r;
+                    lcd_pos_update(i);
+                }
+
+                // Update Head
                 clear_pos(0);
+                snake[0].r++;
                 lcd_pos_update(0);
+                grid_update();
                 count = 0;
             }
-            draw_segment(0);
-            if(snake_length <= 1){
-                break;
+            for(uint32_t i = 0; i < snake_length; i++){
+                draw_segment(i);
             }
+            draw_apple();
             break;
         case(down_st):
-            // Update Head
+            // Update Body
             if(count++ >= speed){
-                snake[0].r--;
+                // Draw body, not tail end
+                for(uint32_t i = (snake_length-1); i > 0; i--){
+                    snake[i].c = snake[i-1].c;
+                    snake[i].r = snake[i-1].r;
+                    lcd_pos_update(i);
+                }
+
+                // Update Head
                 clear_pos(0);
+                snake[0].r--;
                 lcd_pos_update(0);
+                grid_update();
                 count = 0;
             }
-            draw_segment(0);
-            if(snake_length <= 1){
-                break;
+            for(uint32_t i = 0; i < snake_length; i++){
+                draw_segment(i);
             }
+            draw_apple();
             break;
         case(grow_st):
-            snake_length++;
+            if (snake_length + GROW_SPEED < MAX_LENGTH) {
+                for(uint32_t i = 0; i < GROW_SPEED; i++){
+                    snake[snake_length + i].c = snake[snake_length - 1].c; // Place all new tails on top of current tail until we move and update
+                    snake[snake_length + i].r = snake[snake_length - 1].r;
+                    lcd_pos_update(snake_length + i); 
+                }
+                snake_length += GROW_SPEED;
+            }
+            ESP_LOGI(TAG, "Length = %ld", snake_length);
             break;
         case(collided_st):
-            draw_segment(0);
+            for(uint32_t i = 0; i < snake_length; i++){
+                draw_segment(i);
+            }
             break;
     }
 
