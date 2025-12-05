@@ -27,7 +27,7 @@ void lcd_pos_update(uint32_t pos){
     snake[pos].x = snake[pos].c * (LCD_W / COL);
     snake[pos].y = snake[pos].r * (LCD_H / ROW);
 }
-// Draw Snake Segment at pos
+// Draw Snake Segment at pos/index in snake
 void draw_segment(uint32_t pos){
     lcd_fillRect2(snake[pos].x, snake[pos].y, snake[pos].x + SNAKE_SIZE, snake[pos].y + SNAKE_SIZE, GREEN);
 }
@@ -68,6 +68,13 @@ void move_head(){
 
 }
 
+bool apple_eaten(){
+    if(!pin_get_level(HW_BTN_A)){
+        return true;
+    }
+    return false;
+}
+
 // Initialize the game control logic.
 void game_init(void){
     ESP_LOGI(TAG, "Application starting, version");
@@ -96,51 +103,79 @@ void game_tick(void){
             }
             break;
         case(right_st):
+            move_head();
             if(is_collided()){
                 currentState = collided_st;
             }
-            if (y > (Y_CENTER + MOVE_THRESHOLD)){
+            if (snakedir == UP){
                 currentState = up_st;
-            } else if (y < (Y_CENTER - MOVE_THRESHOLD)){
+            } else if (snakedir == DOWN){
                 currentState = down_st;
+            } else if(apple_eaten()){
+                currentState = grow_st;
             }
             
             break;
         case(left_st):
+            move_head();
             if(is_collided()){
                 currentState = collided_st;
             }
-            if (y > (Y_CENTER + MOVE_THRESHOLD)){
+            if (snakedir == UP){
                 currentState = up_st;
-            } else if (y < (Y_CENTER - MOVE_THRESHOLD)){
+            } else if (snakedir == DOWN){
                 currentState = down_st;
+            } else if(apple_eaten()){
+                currentState = grow_st;
             }
+            
             break;
         case(up_st):
             if(is_collided()){
                 currentState = collided_st;
             }
-            if(x > (X_CENTER + MOVE_THRESHOLD)){
+            move_head();
+            if(snakedir == RIGHT){
                 currentState = right_st;
-            } else if (x < (X_CENTER - MOVE_THRESHOLD)){
+            } else if(snakedir == LEFT){
                 currentState = left_st;
+            } else if(apple_eaten()){
+                currentState = grow_st;
             }
+
             break;
         case(down_st):
             // cursor_get_pos(&x, &y);
             if(is_collided()){
                 currentState = collided_st;
             }
-            if(x > (X_CENTER + MOVE_THRESHOLD)){
+            move_head();
+            if(snakedir == RIGHT){
                 currentState = right_st;
-            } else if (x < (X_CENTER - MOVE_THRESHOLD)){
+            } else if(snakedir == LEFT){
                 currentState = left_st;
+            }else if(apple_eaten()){
+                currentState = grow_st;
             }
+
             break;
         case(grow_st):
+            move_head();
+            if(snakedir == RIGHT){
+                currentState = right_st;
+            } else if(snakedir == LEFT){
+                currentState = left_st;
+            } else if (snakedir == UP){
+                currentState = up_st;
+            } else if (snakedir == DOWN){
+                currentState = down_st;
+            }
             break;
         case(collided_st):
             ESP_LOGI(TAG, "COLLIDED");
+            if(!pin_get_level(HW_BTN_START)){
+                currentState = init_st;
+            }
             break;
     }
     // Actions
@@ -148,6 +183,9 @@ void game_tick(void){
         case(init_st):
             draw_segment(0);
             snake_length = 1;
+            snake[0].r = ROW/2;
+            snake[0].c = COL/2;
+            lcd_pos_update(0);
             break;
         case(right_st):
             // Update Head
@@ -162,14 +200,14 @@ void game_tick(void){
                 break;
             }
             // Draw body, not tail end
-            for(uint32_t i = 2; i < (snake_length-1); i++){
+            for(uint32_t i = 1; i < (snake_length-1); i++){
                 grid[snake[i-1].c][snake[i-1].r] = grid[snake[i].c][snake[i].r];
                 lcd_pos_update(i);
                 draw_segment(i);
             }
             // Take care of tail
             clear_pos(snake_length-1);
-            // snake[snake_length-1].c;
+            snake[snake_length-1].c;
             lcd_pos_update(snake_length-1);
 
             // Draw
@@ -215,6 +253,7 @@ void game_tick(void){
             }
             break;
         case(grow_st):
+            snake_length++;
             break;
         case(collided_st):
             draw_segment(0);
